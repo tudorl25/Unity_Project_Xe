@@ -12,8 +12,20 @@ public class Player : Entity
 
     public float moveSpeed = 6f;
     public float sprintSpeed = 10f;
+
+    public float crouchSpeed;
+    public float crouchYScale;
+    public float startYScale;
     
-    
+    public enum movementState
+    {
+        walking,
+        sprinting,
+        crouching,
+        air
+    }
+
+    public movementState state = movementState.walking;
     
     public override void Start()
     {
@@ -27,49 +39,75 @@ public class Player : Entity
         groundDrag = 5f;
 
         Height = 1;
-        
+
+        startYScale = transform.localScale.y;
+
     }
 
 
     public override void Update()
     {
+        checkGrounded();
+        
        Move();
        
        checkCommands();
-       
-       Debug.Log(grounded);
-       
+
     }
 
     public void Move()
     { 
         updateAxis(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical"));
 
-        checkGrounded();
-        
         entityMovement();
 
     }
 
     public void checkCommands()
     {
-        
-       
-
+        checkMovement();
+        checkJump();
+        checkCrouch();
     }
 
-    public void checkSprint()
+    public void checkCrouch()
+    {
+        if (Input.GetKey(KeyCode.LeftControl))
+        {
+            state = movementState.crouching;
+            speed = crouchSpeed;
+        }
+        
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
+            rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+        }
+
+        if (Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+        }
+    }
+
+    public void checkMovement()
     {
         if (grounded)
         {
             if (Input.GetKey(KeyCode.LeftShift))
             {
+                state = movementState.sprinting;
                 speed = sprintSpeed;
             }
             else
             {
+                state = movementState.walking;
                 speed = moveSpeed;
             }
+        }
+        else
+        {
+            state = movementState.air;
         }
     }
 

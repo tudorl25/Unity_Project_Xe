@@ -39,6 +39,9 @@ public class ProjectileThrowing : MonoBehaviour
         //shit needs tuning
         Vector3 positionMultiplier = new Vector3(2f, 2f, 2f);
 
+        //the creation of the object and it's rotation and position
+        //can be made to be spawned in the player and have the direction of the mouse
+        //all to be added for later parts of the game
         GameObject projectile = Instantiate(objectToThrow, attackPoint.position + positionMultiplier, throwDirection.rotation);
 
         Rigidbody projectileRb = projectile.GetComponent<Rigidbody>();
