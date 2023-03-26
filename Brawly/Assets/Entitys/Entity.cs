@@ -61,8 +61,12 @@ public class Entity : MonoBehaviour
 
    public void checkGrounded()
    {
+       //The height MUST be tuned
+       
        grounded = Physics.Raycast(transform.position, Vector3.down, Height * 0.5f + 0.2f, whatIsGround);
-
+       
+      // grounded = Physics.Raycast(transform.position, Vector3.down, 0.6f, whatIsGround);
+       
        if (grounded)
            rb.drag = groundDrag;
        else rb.drag = 0;

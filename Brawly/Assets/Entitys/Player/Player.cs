@@ -10,7 +10,7 @@ public class Player : Entity
     public float jumpCooldown;
     public bool readyToJump;
 
-   // public int jumpCounter = 1;
+    public int jumpCounter = 1;
 
     public override void Start()
     {
@@ -24,7 +24,7 @@ public class Player : Entity
 
         groundDrag = 5f;
 
-        Height = 2;
+        Height = 1;
         
     }
 
@@ -61,7 +61,7 @@ public class Player : Entity
         }
         
 
-        if (Input.GetKeyDown(KeyCode.Space) && readyToJump )
+        if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded)
         {
             readyToJump = false;
             
@@ -70,13 +70,25 @@ public class Player : Entity
             Invoke(nameof(ResetJump),jumpCooldown);
         }
 
-        //double jump concept, needs more work but for later
-        /*
-        if (rJ() && Input.GetKeyDown(KeyCode.E))
+
+        //double jump works flawlessly, just is primitve
+        
+       /* if (grounded)
+        {
+            jumpCounter = 1;
+        }
+       
+        if (jumpCounter != 0 && Input.GetKeyDown(KeyCode.E) && readyToJump)
         {
             jumpCounter--;
             
             Jump();
+
+            if (jumpCounter == 1)
+            {
+                readyToJump = true;
+                rb.drag = groundDrag;
+            }
 
             if (jumpCounter == 0)
             {
@@ -102,19 +114,6 @@ public class Player : Entity
     //Double jump concept, further improvement needed
     
     
-   /* public bool rJ()
-    {
-        if (grounded)
-        {
-            jumpCounter = 2;
-        }
-
-        if (jumpCounter == 0)
-        {
-            return false;
-        }
-        
-         return true;
-    }*/
+    
     
 }
