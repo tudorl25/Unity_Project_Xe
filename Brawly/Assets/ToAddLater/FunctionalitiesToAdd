@@ -1,0 +1,25 @@
+Double jump works flawlessly, just is primitve
+The code:
+        
+         if (grounded)
+         {
+             jumpCounter = 1;
+         }
+        
+         if (jumpCounter != 0 && Input.GetKeyDown(KeyCode.E) && readyToJump)
+         {
+             jumpCounter--;
+             
+             Jump();
+ 
+             if (jumpCounter == 1)
+             {
+                 readyToJump = true;
+                 rb.drag = groundDrag;
+             }
+ 
+             if (jumpCounter == 0)
+             {
+                 Invoke(nameof(ResetJump),jumpCooldown);
+             }
+         }

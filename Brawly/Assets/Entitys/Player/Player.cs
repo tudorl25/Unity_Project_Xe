@@ -10,14 +10,16 @@ public class Player : Entity
     public float jumpCooldown;
     public bool readyToJump;
 
-    public int jumpCounter = 1;
-
+    public float moveSpeed = 6f;
+    public float sprintSpeed = 10f;
+    
+    
+    
     public override void Start()
     {
         health = 100;
 
-        speed = 6f;
-
+        speed = moveSpeed;
 
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
@@ -52,15 +54,27 @@ public class Player : Entity
     public void checkCommands()
     {
         
-        if (Input.GetKeyDown(KeyCode.LeftShift))
-        {
-            speed = 10f;
-        }else if (Input.GetKeyUp(KeyCode.LeftShift))
-        {
-            speed = 6f;
-        }
-        
+       
 
+    }
+
+    public void checkSprint()
+    {
+        if (grounded)
+        {
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                speed = sprintSpeed;
+            }
+            else
+            {
+                speed = moveSpeed;
+            }
+        }
+    }
+
+    public void checkJump()
+    {
         if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded)
         {
             readyToJump = false;
@@ -70,32 +84,6 @@ public class Player : Entity
             Invoke(nameof(ResetJump),jumpCooldown);
         }
 
-
-        //double jump works flawlessly, just is primitve
-        
-       /* if (grounded)
-        {
-            jumpCounter = 1;
-        }
-       
-        if (jumpCounter != 0 && Input.GetKeyDown(KeyCode.E) && readyToJump)
-        {
-            jumpCounter--;
-            
-            Jump();
-
-            if (jumpCounter == 1)
-            {
-                readyToJump = true;
-                rb.drag = groundDrag;
-            }
-
-            if (jumpCounter == 0)
-            {
-                Invoke(nameof(ResetJump),jumpCooldown);
-            }
-        }*/
-        
     }
 
     public void Jump()
@@ -109,11 +97,6 @@ public class Player : Entity
     {
         readyToJump = true;
     }
-
-    
-    //Double jump concept, further improvement needed
-    
-    
     
     
 }

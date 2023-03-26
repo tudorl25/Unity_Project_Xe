@@ -36,6 +36,7 @@ public class ProjectileThrowing : MonoBehaviour
     {
         readyToThrow = false;
 
+        //shit needs tuning
         Vector3 positionMultiplier = new Vector3(2f, 2f, 2f);
 
         GameObject projectile = Instantiate(objectToThrow, attackPoint.position + positionMultiplier, throwDirection.rotation);
