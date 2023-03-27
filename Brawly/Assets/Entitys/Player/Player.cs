@@ -68,17 +68,19 @@ public class Player : Entity
         checkMovement();
         checkJump();
         checkCrouch();
+        
+        Debug.Log(state);
     }
 
     public void checkCrouch()
     {
-        if (Input.GetKey(KeyCode.LeftControl))
+        if (Input.GetKey(KeyCode.LeftControl) && state != movementState.air)
         {
             state = movementState.crouching;
             speed = crouchSpeed;
         }
         
-        if (Input.GetKeyDown(KeyCode.LeftControl))
+        if (Input.GetKeyDown(KeyCode.LeftControl) && state != movementState.air)
         {
             transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
             rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
@@ -86,13 +88,14 @@ public class Player : Entity
 
         if (Input.GetKeyUp(KeyCode.LeftControl))
         {
+            state = movementState.walking;
             transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
         }
     }
 
     public void checkMovement()
     {
-        if (grounded)
+        if (grounded && state != movementState.crouching)
         {
             if (Input.GetKey(KeyCode.LeftShift))
             {
@@ -105,7 +108,7 @@ public class Player : Entity
                 speed = moveSpeed;
             }
         }
-        else
+        else if(state != movementState.crouching)
         {
             state = movementState.air;
         }
@@ -113,13 +116,13 @@ public class Player : Entity
 
     public void checkJump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded)
+        if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded && state != movementState.crouching)
         {
-            readyToJump = false;
-            
-            Jump();
-            
-            Invoke(nameof(ResetJump),jumpCooldown);
+                readyToJump = false;
+
+                Jump();
+
+                Invoke(nameof(ResetJump), jumpCooldown);
         }
 
     }
