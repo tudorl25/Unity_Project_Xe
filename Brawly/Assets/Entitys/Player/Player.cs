@@ -16,6 +16,9 @@ public class Player : Entity
     public float crouchSpeed;
     public float crouchYScale;
     public float startYScale;
+
+    public ChainVars cs = new ChainVars();
+    
     
     public enum movementState
     {
@@ -68,8 +71,6 @@ public class Player : Entity
         checkMovement();
         checkJump();
         checkCrouch();
-        
-        Debug.Log(state);
     }
 
     public void checkCrouch()
@@ -118,6 +119,8 @@ public class Player : Entity
     {
         if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded && state != movementState.crouching)
         {
+               cs.exitSlope = true;
+            
                 readyToJump = false;
 
                 Jump();
@@ -137,7 +140,8 @@ public class Player : Entity
     public void ResetJump()
     {
         readyToJump = true;
+
+        cs.exitSlope = false;
     }
-    
     
 }
