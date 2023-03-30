@@ -55,7 +55,7 @@ public class Sliding
         if (!ChainVars.onSlope || rb.velocity.y > -0.1f)
         {
 
-            Vector3 direction = getDirection(inputDir);
+            Vector3 direction = getDirection(/*inputDir*/ playerObj.forward);
 
             playerObj.forward = direction;
 
