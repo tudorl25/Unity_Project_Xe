@@ -15,16 +15,17 @@ public class Entity : MonoBehaviour
    public Vector3 moveDirection;
    
    public float maxSlopeAngle;
-   private RaycastHit slopeHit;
+   public RaycastHit slopeHit;
 
-   private ChainVars cs = new ChainVars();
-   
   public CharacterController cc;
 
-    float horizontal;
-    float vertical;
+  public float horizontal;
+  public float vertical;
 
-    public Transform orientation;
+  public Transform orientation;
+
+  public Transform playerObj;
+    
 
     //grounded checks
     public float groundDrag;
@@ -41,23 +42,28 @@ public class Entity : MonoBehaviour
     // Update is called once per frame
    public virtual void Update()
    {
-       
+       ChainVars.UpdateOnSlope(onSlope());
    }
 
    public void updateAxis(float h, float v)
    {
        horizontal = h;
        vertical = v;
+       
    }
 
 
    public void entityMovement()
    {
        moveDirection = orientation.forward * vertical + orientation.right * horizontal;
+       
 
        if (onSlope() && !ChainVars.exitSlope)
        {
-           rb.AddForce(getSlopeMovementDir() * speed * 20f,ForceMode.Force);
+           Vector3 slopeDir = getSlopeMovementDir(moveDirection);
+           
+           rb.AddForce(slopeDir * speed * 20f,ForceMode.Force);
+           ChainVars.UpdateDir(slopeDir);
 
            if (rb.velocity.y > 0)
            {
@@ -122,9 +128,9 @@ public class Entity : MonoBehaviour
        return false;
    }
 
-   Vector3 getSlopeMovementDir()
+   Vector3 getSlopeMovementDir(Vector3 direction)
    {
-       return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
+       return Vector3.ProjectOnPlane(direction, slopeHit.normal).normalized;
    }
 
 }

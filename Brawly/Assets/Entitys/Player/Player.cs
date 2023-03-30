@@ -15,22 +15,25 @@ public class Player : Entity
 
     Jumping jump;
     Crouching cr;
+    Sliding sd;
 
     public enum movementState
     {
         walking,
         sprinting,
         crouching,
+        sliding,
         air
     }
 
     public movementState state = movementState.walking;
-    
+
     public override void Start()
     {
         jump = new Jumping(transform, rb);
         cr = new Crouching(transform, rb);
-        
+        sd = new Sliding(orientation, playerObj, rb, horizontal, vertical);
+
         health = 100;
 
         speed = moveSpeed;
@@ -43,22 +46,27 @@ public class Player : Entity
         Height = 1;
 
         cr.startYScale = transform.localScale.y;
+        sd.startYScale = transform.localScale.y;
     }
 
 
     public override void Update()
     {
         checkGrounded();
+
+        Move();
+
+        checkCommands();
+
+        base.Update();
         
-       Move();
-       
-       checkCommands();
+        Debug.Log(state);
 
     }
 
     public void Move()
-    { 
-        updateAxis(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical"));
+    {
+        updateAxis(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
 
         entityMovement();
 
@@ -69,6 +77,7 @@ public class Player : Entity
         checkMovement();
         checkJump();
         checkCrouch();
+        checkSlide();
     }
 
     public void checkCrouch()
@@ -78,7 +87,7 @@ public class Player : Entity
             state = movementState.crouching;
             speed = crouchSpeed;
         }
-        
+
         if (Input.GetKeyDown(KeyCode.LeftControl) && state != movementState.air)
         {
             cr.crouch();
@@ -106,7 +115,7 @@ public class Player : Entity
                 speed = moveSpeed;
             }
         }
-        else if(state != movementState.crouching)
+        else if (state != movementState.crouching)
         {
             state = movementState.air;
         }
@@ -132,6 +141,27 @@ public class Player : Entity
         readyToJump = true;
 
         ChainVars.exitSlope = false;
+    }
+
+    public void checkSlide()
+    {
+        if (Input.GetKeyDown(KeyCode.F) && (horizontal != 0 || vertical != 0) && rb.velocity.magnitude > 6f && state != movementState.air)
+        {
+          //   state = movementState.sliding;
+            
+            sd.startSliding();
+        }
+
+        if (Input.GetKeyUp(KeyCode.F) && sd.sliding)
+        {
+            sd.stopSlide();
+        }
+
+        if (sd.sliding)
+        {
+            sd.slidingMovement();
+        }
+        
     }
     
 }

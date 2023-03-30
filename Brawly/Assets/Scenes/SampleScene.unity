@@ -299,21 +299,21 @@ MonoBehaviour:
   moveDirection: {x: 0, y: 0, z: 0}
   maxSlopeAngle: 40
   cc: {fileID: 0}
+  horizontal: 0
+  vertical: 0
   orientation: {fileID: 1509817050}
+  playerObj: {fileID: 1562963311}
   groundDrag: 2
   Height: 1
   whatIsGround:
     serializedVersion: 2
     m_Bits: 256
   grounded: 1
-  jumpForce: 8
   jumpCooldown: 0
   readyToJump: 1
   moveSpeed: 6
   sprintSpeed: 10
   crouchSpeed: 4
-  crouchYScale: 0.5
-  startYScale: 0
   state: 0
 --- !u!114 &344313551
 MonoBehaviour:
@@ -555,7 +555,10 @@ MonoBehaviour:
   moveDirection: {x: 0, y: 0, z: 0}
   maxSlopeAngle: 0
   cc: {fileID: 0}
+  horizontal: 0
+  vertical: 0
   orientation: {fileID: 0}
+  playerObj: {fileID: 0}
   groundDrag: 0
   Height: 0
   whatIsGround:
