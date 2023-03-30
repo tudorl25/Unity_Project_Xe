@@ -5,8 +5,6 @@ using UnityEngine.EventSystems;
 
 public class Player : Entity
 {
-
-    public float jumpForce = 7;
     public float jumpCooldown;
     public bool readyToJump;
 
@@ -14,12 +12,10 @@ public class Player : Entity
     public float sprintSpeed = 10f;
 
     public float crouchSpeed;
-    public float crouchYScale;
-    public float startYScale;
 
-    public ChainVars cs = new ChainVars();
-    
-    
+    Jumping jump;
+    Crouching cr;
+
     public enum movementState
     {
         walking,
@@ -32,6 +28,9 @@ public class Player : Entity
     
     public override void Start()
     {
+        jump = new Jumping(transform, rb);
+        cr = new Crouching(transform, rb);
+        
         health = 100;
 
         speed = moveSpeed;
@@ -43,8 +42,7 @@ public class Player : Entity
 
         Height = 1;
 
-        startYScale = transform.localScale.y;
-
+        cr.startYScale = transform.localScale.y;
     }
 
 
@@ -83,14 +81,13 @@ public class Player : Entity
         
         if (Input.GetKeyDown(KeyCode.LeftControl) && state != movementState.air)
         {
-            transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
-            rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+            cr.crouch();
         }
 
         if (Input.GetKeyUp(KeyCode.LeftControl))
         {
             state = movementState.walking;
-            transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+            cr.normalize();
         }
     }
 
@@ -119,29 +116,22 @@ public class Player : Entity
     {
         if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded && state != movementState.crouching)
         {
-               cs.exitSlope = true;
+                ChainVars.exitSlope = true;
             
                 readyToJump = false;
 
-                Jump();
+                jump.Jump();
 
                 Invoke(nameof(ResetJump), jumpCooldown);
         }
 
     }
-
-    public void Jump()
-    {
-        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-        
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
-    }
-
+  
     public void ResetJump()
     {
         readyToJump = true;
 
-        cs.exitSlope = false;
+        ChainVars.exitSlope = false;
     }
     
 }

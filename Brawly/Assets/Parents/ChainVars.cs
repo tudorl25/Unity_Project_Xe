@@ -1,5 +1,5 @@
 
     public class ChainVars
     {
-        public bool exitSlope = false;
+        public static bool exitSlope = false;
     }

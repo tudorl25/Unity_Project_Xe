@@ -55,7 +55,7 @@ public class Entity : MonoBehaviour
    {
        moveDirection = orientation.forward * vertical + orientation.right * horizontal;
 
-       if (onSlope() && !cs.exitSlope)
+       if (onSlope() && !ChainVars.exitSlope)
        {
            rb.AddForce(getSlopeMovementDir() * speed * 20f,ForceMode.Force);
 
@@ -93,7 +93,7 @@ public class Entity : MonoBehaviour
    public void speedControl()
    {
 
-       if (onSlope() && !cs.exitSlope)
+       if (onSlope() && !ChainVars.exitSlope)
        {
            if (rb.velocity.magnitude > speed)
                rb.velocity = rb.velocity.normalized * speed;
