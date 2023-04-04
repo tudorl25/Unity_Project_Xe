@@ -13,9 +13,13 @@ public class Player : Entity
 
     public float crouchSpeed;
 
+    public float dashDuration = 0.25f;
+    
+
     Jumping jump;
     Crouching cr;
     Sliding sd;
+    Dashing ds;
 
     public enum movementState
     {
@@ -32,7 +36,8 @@ public class Player : Entity
     {
         jump = new Jumping(transform, rb);
         cr = new Crouching(transform, rb);
-        sd = new Sliding(orientation, playerObj, rb, horizontal, vertical);
+        sd = new Sliding(orientation, playerObj, rb);
+        ds = new Dashing(playerObj, rb);
 
         health = 100;
 
@@ -78,6 +83,25 @@ public class Player : Entity
         checkJump();
         checkCrouch();
         checkSlide();
+        checkDash();
+    }
+
+    public void checkDash()
+    {
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            speed = 9f;
+            
+            ds.dashing();
+            
+            Invoke(nameof(resetDash),dashDuration);
+        }
+        
+    }
+
+    public void resetDash()
+    {
+        speed = 6f;
     }
 
     public void checkCrouch()
@@ -109,7 +133,7 @@ public class Player : Entity
                 state = movementState.sprinting;
                 speed = sprintSpeed;
             }
-            else
+            else if(state != movementState.crouching && speed != 9f)
             {
                 state = movementState.walking;
                 speed = moveSpeed;
@@ -123,7 +147,7 @@ public class Player : Entity
 
     public void checkJump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded && state != movementState.crouching)
+        if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded && (state != movementState.crouching || state != movementState.sliding))
         {
                 ChainVars.exitSlope = true;
             
@@ -147,7 +171,7 @@ public class Player : Entity
     {
         if (Input.GetKeyDown(KeyCode.F) && (horizontal != 0 || vertical != 0) && rb.velocity.magnitude > 6f && state != movementState.air)
         {
-          //   state = movementState.sliding;
+             state = movementState.sliding;
             
             sd.startSliding();
         }
@@ -161,7 +185,13 @@ public class Player : Entity
         {
             sd.slidingMovement();
         }
+    }
+
+    //de reintors la asta
+    public void slideSlopes()
+    {
         
     }
-    
+
+ 
 }
