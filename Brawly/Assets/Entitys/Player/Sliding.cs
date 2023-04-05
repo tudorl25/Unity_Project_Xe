@@ -8,11 +8,14 @@ public class Sliding
 
     public Rigidbody rb;
 
-    public Sliding(Transform orientation, Transform playerObj, Rigidbody rb)
+    public Sliding(Transform orientation, Transform playerObj, Rigidbody rb,float horizontal,float vertical)
     {
         this.orientation = orientation;
         this.playerObj = playerObj;
         this.rb = rb;
+
+        this.horizontal = horizontal;
+        this.vertical = vertical;
     }
 
     public float maxSlideTime = 0.75f;
@@ -24,6 +27,9 @@ public class Sliding
     
     public bool sliding;
 
+    public float horizontal;
+    public float vertical;
+
     public bool firstDir = false;
 
     private Vector3 finalDir;
@@ -34,7 +40,7 @@ public class Sliding
 
         firstDir = true;
 
-        playerObj.localScale = new Vector3(playerObj.localScale.x, slideYScale, playerObj.localScale.z);
+        //playerObj.localScale = new Vector3(playerObj.localScale.x, slideYScale, playerObj.localScale.z);
         
         rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
 
@@ -44,12 +50,12 @@ public class Sliding
     public void slidingMovement()
     {
      
-        Vector3 inputDir = playerObj.forward;
+        Vector3 inputDir = orientation.forward;
 
         if (!ChainVars.onSlope || rb.velocity.y > -0.1f)
         {
 
-            Vector3 direction = getDirection(inputDir);
+            Vector3 direction = getDirection(/*inputDir*/ playerObj.forward);
 
             playerObj.forward = direction;
 
@@ -72,7 +78,7 @@ public class Sliding
         
         firstDir = true;
 
-        playerObj.localScale = new Vector3(playerObj.localScale.x, startYScale, playerObj.localScale.z);
+        //playerObj.localScale = new Vector3(playerObj.localScale.x, startYScale, playerObj.localScale.z);
     }
 
     Vector3 getDirection(Vector3 dir)

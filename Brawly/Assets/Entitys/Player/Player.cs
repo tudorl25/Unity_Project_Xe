@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
+using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -13,31 +15,37 @@ public class Player : Entity
 
     public float crouchSpeed;
 
-    public float dashDuration = 0.25f;
-    
+    List<string> stateNames= new List<string>() { "isIdle", "isRunning", "isJumping", "isCrouching", "isCrouchWalking", "isWalking", "isSliding" };
+    string lastStateName = string.Empty;
 
     Jumping jump;
     Crouching cr;
     Sliding sd;
-    Dashing ds;
 
     public enum movementState
     {
+        idle,
         walking,
         sprinting,
         crouching,
+        crouch_walking,
         sliding,
         air
     }
 
-    public movementState state = movementState.walking;
+    public movementState state = movementState.idle;
+
+    float distToGround;
+
+    float idleTolerance = 3f;
+
+    public Animator anim;
 
     public override void Start()
     {
         jump = new Jumping(transform, rb);
         cr = new Crouching(transform, rb);
-        sd = new Sliding(orientation, playerObj, rb);
-        ds = new Dashing(playerObj, rb);
+        sd = new Sliding(orientation, playerObj, rb, horizontal, vertical);
 
         health = 100;
 
@@ -52,18 +60,32 @@ public class Player : Entity
 
         cr.startYScale = transform.localScale.y;
         sd.startYScale = transform.localScale.y;
+
+        //get distance to ground
+        RaycastHit hit = new RaycastHit();
+        if (Physics.Raycast(transform.position, -Vector3.up, out hit))
+        {
+            distToGround = hit.distance;
+        }
+
+        anim = GetComponent<Animator>();
+
+        lastStateName = stateNames[0];
     }
 
 
     public override void Update()
     {
-        checkGrounded();
+
+        checkGrounded(distToGround);
 
         Move();
 
         checkCommands();
 
         base.Update();
+
+        updateAnimation();
         
         Debug.Log(state);
 
@@ -83,71 +105,73 @@ public class Player : Entity
         checkJump();
         checkCrouch();
         checkSlide();
-        checkDash();
-    }
-
-    public void checkDash()
-    {
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            speed = 9f;
-            
-            ds.dashing();
-            
-            Invoke(nameof(resetDash),dashDuration);
-        }
-        
-    }
-
-    public void resetDash()
-    {
-        speed = 6f;
     }
 
     public void checkCrouch()
     {
-        if (Input.GetKey(KeyCode.LeftControl) && state != movementState.air)
+        if (state != movementState.air)
         {
-            state = movementState.crouching;
-            speed = crouchSpeed;
-        }
+            if (Input.GetKey(KeyCode.LeftControl))
+            {
+                if (rb.velocity.magnitude <= idleTolerance / 2)
+                {
+                    lastStateName = convertStateToStr(state);
+                    state = movementState.crouching;
+                }
+                else
+                {
+                    lastStateName = convertStateToStr(state);
+                    state = movementState.crouch_walking;
+                    speed = crouchSpeed;
+                }
+            }
 
-        if (Input.GetKeyDown(KeyCode.LeftControl) && state != movementState.air)
-        {
-            cr.crouch();
-        }
+            if (Input.GetKeyDown(KeyCode.LeftControl))
+            {
+                cr.crouch();
+            }
 
-        if (Input.GetKeyUp(KeyCode.LeftControl))
-        {
-            state = movementState.walking;
-            cr.normalize();
+            if (Input.GetKeyUp(KeyCode.LeftControl))
+            {
+                lastStateName = convertStateToStr(state);
+                state = movementState.idle;
+                cr.normalize();
+            }
         }
     }
 
     public void checkMovement()
     {
-        if (grounded && state != movementState.crouching)
+        if (grounded && state != movementState.crouching && state != movementState.crouch_walking)
         {
-            if (Input.GetKey(KeyCode.LeftShift))
+            if (Input.GetKey(KeyCode.LeftShift) && rb.velocity.magnitude > idleTolerance)
             {
+                lastStateName = convertStateToStr(state);
                 state = movementState.sprinting;
                 speed = sprintSpeed;
             }
-            else if(state != movementState.crouching && speed != 9f)
+            else if(rb.velocity.magnitude <= idleTolerance)
             {
+                lastStateName = convertStateToStr(state);
+                state = movementState.idle;
+            }
+            else
+            {
+                lastStateName = convertStateToStr(state);
                 state = movementState.walking;
                 speed = moveSpeed;
             }
         }
-        else if (state != movementState.crouching)
+        else if (!grounded)
         {
+            lastStateName = convertStateToStr(state);
             state = movementState.air;
         }
     }
 
     public void checkJump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded && (state != movementState.crouching || state != movementState.sliding))
+        if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded && state != movementState.crouching && state != movementState.crouch_walking)
         {
                 ChainVars.exitSlope = true;
             
@@ -171,7 +195,8 @@ public class Player : Entity
     {
         if (Input.GetKeyDown(KeyCode.F) && (horizontal != 0 || vertical != 0) && rb.velocity.magnitude > 6f && state != movementState.air)
         {
-             state = movementState.sliding;
+            lastStateName = convertStateToStr(state);
+            state = movementState.sliding;
             
             sd.startSliding();
         }
@@ -185,13 +210,53 @@ public class Player : Entity
         {
             sd.slidingMovement();
         }
-    }
-
-    //de reintors la asta
-    public void slideSlopes()
-    {
         
     }
 
- 
+    public void updateAnimation()
+    {
+        if(lastStateName != convertStateToStr(state))
+            anim.SetBool(lastStateName, false);
+        switch (state)
+        {
+            case movementState.idle:
+                anim.SetBool("isIdle", true);
+                break;
+
+            case movementState.sprinting:
+                anim.SetBool("isRunning", true);
+                break;
+
+            case movementState.air:
+                anim.SetBool("isJumping", true);
+                break;
+
+            case movementState.crouching:
+                anim.SetBool("isCrouching", true);
+                break;
+
+            case movementState.crouch_walking:
+                anim.SetBool("isCrouchWalking", true);
+                break;
+
+            case movementState.walking:
+                anim.SetBool("isWalking", true);
+                break;
+
+            case movementState.sliding:
+                anim.SetBool("isSliding", true);
+                break;
+        }
+    }
+
+    string convertStateToStr(movementState stat)
+    {
+        if (stat == movementState.idle) return "isIdle";
+        else if (stat == movementState.sprinting) return "isRunning";
+        else if (stat == movementState.air) return "isJumping";
+        else if (stat == movementState.crouching) return "isCrouching";
+        else if (stat == movementState.crouch_walking) return "isCrouchWalking";
+        else if (stat == movementState.walking) return "isWalking";
+        else return "isSliding";
+    }
 }

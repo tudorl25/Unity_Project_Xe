@@ -5,11 +5,11 @@ public class BasicNpc : Entity
 
     //must work further
 
-    Rigidbody rb;
+   // Rigidbody rb;
 
     public override void Start()
      {
-         rb = rb;
+         //rb = rb;
 
        //  setPosition(-20,10,-10);
      }
