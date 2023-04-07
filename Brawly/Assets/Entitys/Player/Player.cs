@@ -1,7 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
-using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -10,13 +8,19 @@ public class Player : Entity
     public float jumpCooldown;
     public bool readyToJump;
 
-    public float moveSpeed = 6f;
-    public float sprintSpeed = 10f;
+    public float moveSpeed = 2.5f;
+    public float sprintSpeed = 3.5f;
 
-    public float crouchSpeed;
+    public float slideSpeed = 7f;
 
-    List<string> stateNames= new List<string>() { "isIdle", "isRunning", "isJumping", "isCrouching", "isCrouchWalking", "isWalking", "isSliding" };
-    string lastStateName = string.Empty;
+    public float dashSpeed = 10f;
+
+    private float desiredMoveSpeed;
+    private float lastDesiredMoveSpeed; 
+    
+    public float crouchSpeed = 1.5f;
+
+    public float idleTolerance = 0.5f;
 
     Jumping jump;
     Crouching cr;
@@ -24,28 +28,31 @@ public class Player : Entity
 
     public enum movementState
     {
-        idle,
         walking,
         sprinting,
         crouching,
         crouch_walking,
         sliding,
-        air
+        dash,
+        air,
+        idle
     }
 
-    public movementState state = movementState.idle;
+    public bool dashing = false;
 
-    float distToGround;
-
-    float idleTolerance = 3f;
+    public movementState state = movementState.walking;
 
     public Animator anim;
 
+    string lastStateName;
+
     public override void Start()
     {
+        base.Start();
+        
         jump = new Jumping(transform, rb);
         cr = new Crouching(transform, rb);
-        sd = new Sliding(orientation, playerObj, rb, horizontal, vertical);
+        sd = new Sliding(orientation, playerObj, rb);
 
         health = 100;
 
@@ -60,32 +67,20 @@ public class Player : Entity
 
         cr.startYScale = transform.localScale.y;
         sd.startYScale = transform.localScale.y;
-
-        //get distance to ground
-        RaycastHit hit = new RaycastHit();
-        if (Physics.Raycast(transform.position, -Vector3.up, out hit))
-        {
-            distToGround = hit.distance;
-        }
-
-        anim = GetComponent<Animator>();
-
-        lastStateName = stateNames[0];
     }
 
 
     public override void Update()
     {
+        updateAnimation();
 
-        checkGrounded(distToGround);
+        checkGrounded();
 
         Move();
 
         checkCommands();
 
         base.Update();
-
-        updateAnimation();
         
         Debug.Log(state);
 
@@ -101,77 +96,26 @@ public class Player : Entity
 
     public void checkCommands()
     {
-        checkMovement();
+        StateHandler();
         checkJump();
         checkCrouch();
         checkSlide();
     }
 
+  
+
     public void checkCrouch()
     {
-        if (state != movementState.air)
+        if (Input.GetKeyDown(KeyCode.LeftControl))
         {
-            if (Input.GetKey(KeyCode.LeftControl))
-            {
-                if (rb.velocity.magnitude <= idleTolerance / 2)
-                {
-                    lastStateName = convertStateToStr(state);
-                    state = movementState.crouching;
-                }
-                else
-                {
-                    lastStateName = convertStateToStr(state);
-                    state = movementState.crouch_walking;
-                    speed = crouchSpeed;
-                }
-            }
-
-            if (Input.GetKeyDown(KeyCode.LeftControl))
-            {
-                cr.crouch();
-            }
-
-            if (Input.GetKeyUp(KeyCode.LeftControl))
-            {
-                lastStateName = convertStateToStr(state);
-                state = movementState.idle;
-                cr.normalize();
-            }
+            cr.crouch();
         }
     }
-
-    public void checkMovement()
-    {
-        if (grounded && state != movementState.crouching && state != movementState.crouch_walking)
-        {
-            if (Input.GetKey(KeyCode.LeftShift) && rb.velocity.magnitude > idleTolerance)
-            {
-                lastStateName = convertStateToStr(state);
-                state = movementState.sprinting;
-                speed = sprintSpeed;
-            }
-            else if(rb.velocity.magnitude <= idleTolerance)
-            {
-                lastStateName = convertStateToStr(state);
-                state = movementState.idle;
-            }
-            else
-            {
-                lastStateName = convertStateToStr(state);
-                state = movementState.walking;
-                speed = moveSpeed;
-            }
-        }
-        else if (!grounded)
-        {
-            lastStateName = convertStateToStr(state);
-            state = movementState.air;
-        }
-    }
+    
 
     public void checkJump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded && state != movementState.crouching && state != movementState.crouch_walking)
+        if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded)
         {
                 ChainVars.exitSlope = true;
             
@@ -193,12 +137,14 @@ public class Player : Entity
 
     public void checkSlide()
     {
-        if (Input.GetKeyDown(KeyCode.F) && (horizontal != 0 || vertical != 0) && rb.velocity.magnitude > 6f && state != movementState.air)
+        if (Input.GetKeyDown(KeyCode.F) && (horizontal != 0 || vertical != 0) && rb.velocity.magnitude > 3f)
         {
-            lastStateName = convertStateToStr(state);
-            state = movementState.sliding;
-            
             sd.startSliding();
+        }
+        
+        if (Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            cr.normalize();
         }
 
         if (Input.GetKeyUp(KeyCode.F) && sd.sliding)
@@ -210,12 +156,104 @@ public class Player : Entity
         {
             sd.slidingMovement();
         }
-        
     }
+    
+    public IEnumerator smoothlyLerpSpeed()
+    {
+        float time = 0;
+        float difference = Mathf.Abs(desiredMoveSpeed = moveSpeed);
+        float startValue = moveSpeed;
+
+        while (time < difference)
+        {
+            speed = Mathf.Lerp(startValue, desiredMoveSpeed, time / difference);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        speed = desiredMoveSpeed;
+    }
+
+    private void StateHandler()
+    {
+        if (dashing)
+        {
+            desiredMoveSpeed = dashSpeed;
+        } 
+        else if (sd.sliding)
+        {
+            lastStateName = convertStateToStr(state);
+            state = movementState.sliding;
+
+            if (onSlope() && rb.velocity.y < 0.1f)
+                desiredMoveSpeed = slideSpeed;
+            else
+                desiredMoveSpeed = sprintSpeed;
+        } 
+        else if (Input.GetKey(KeyCode.LeftControl))
+        {
+            if (rb.velocity.magnitude > idleTolerance)
+            {
+                lastStateName = convertStateToStr(state);
+                state = movementState.crouch_walking;
+                desiredMoveSpeed = crouchSpeed;
+            }
+            else
+            {
+                lastStateName = convertStateToStr(state);
+                state = movementState.crouching;
+            }
+        } 
+        else if (grounded && Input.GetKey(KeyCode.LeftShift) && rb.velocity.magnitude>idleTolerance)
+        {
+            lastStateName = convertStateToStr(state);
+            state = movementState.sprinting;
+            desiredMoveSpeed = sprintSpeed;
+        }
+        else if (grounded)
+        {
+            if (rb.velocity.magnitude < idleTolerance)
+            {
+                lastStateName = convertStateToStr(state);
+                state = movementState.idle;
+            }
+            else
+            {
+                lastStateName = convertStateToStr(state);
+                state = movementState.walking;
+                desiredMoveSpeed = moveSpeed;
+            }
+        }
+        else
+        {
+            lastStateName = convertStateToStr(state);
+            state = movementState.air;
+        }
+
+        if (Mathf.Abs(desiredMoveSpeed - lastDesiredMoveSpeed) > 4f && speed != 0)
+        {
+            StopAllCoroutines();
+            StartCoroutine(smoothlyLerpSpeed());
+        }
+        else
+        {
+            speed = desiredMoveSpeed;
+        }
+
+        lastDesiredMoveSpeed = desiredMoveSpeed;
+        
+
+    }
+
+    public bool addDrag()
+    {
+        return state == movementState.walking || state == movementState.crouching || state == movementState.sprinting || state == movementState.sliding;
+    }
+
 
     public void updateAnimation()
     {
-        if(lastStateName != convertStateToStr(state))
+        if (lastStateName != convertStateToStr(state))
             anim.SetBool(lastStateName, false);
         switch (state)
         {

@@ -23,3 +23,32 @@ The code:
                  Invoke(nameof(ResetJump),jumpCooldown);
              }
          }
+         
+         
+             //old dash system, worked but deemed rather useless since i cannot aply Invoke
+          /*   public void dash()
+             {
+                 if (readyDash) {
+                     
+                     Vector3 forceToAdd = playerObj.forward;    
+         
+                 Vector3 direction = getDirection(forceToAdd);
+         
+                 rb.AddForce(direction.normalized * dashForce, ForceMode.Impulse);
+         
+                 readyDash = false;
+                 }
+                 
+         }*/
+         
+         //used for old dash system
+            /* Vector3 getDirection(Vector3 dir)
+             {
+                 if (firstDir)
+                 {
+                     finalDir = dir;
+                     firstDir = false;
+                 }
+         
+                 return finalDir;
+             }*/

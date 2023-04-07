@@ -1,7 +1,7 @@
 fileFormatVersion: 2
-guid: c83d070223b88a94c84bc2b7092ac906
+guid: 85c5043622785a544a7b04c6e6c0fff6
 ModelImporter:
-  serializedVersion: 21300
+  serializedVersion: 22200
   internalIDToNameTable: []
   externalObjects: {}
   materials:
@@ -14,7 +14,7 @@ ModelImporter:
     bakeSimulation: 0
     resampleCurves: 1
     optimizeGameObjects: 0
-    removeConstantScaleCurves: 1
+    removeConstantScaleCurves: 0
     motionNodeName: 
     rigImportErrors: 
     rigImportWarnings: 
@@ -27,7 +27,7 @@ ModelImporter:
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
     importConstraints: 0
-    animationCompression: 3
+    animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
@@ -68,7 +68,7 @@ ModelImporter:
       name: Running
       takeName: Scene
       internalID: -8800838248204228948
-      firstFrame: 72
+      firstFrame: 73
       lastFrame: 108
       wrapMode: 0
       orientationOffsetY: 0
@@ -97,7 +97,7 @@ ModelImporter:
       name: Jumping
       takeName: Scene
       internalID: -491678979986718739
-      firstFrame: 143
+      firstFrame: 144
       lastFrame: 194
       wrapMode: 0
       orientationOffsetY: 0
@@ -155,7 +155,7 @@ ModelImporter:
       name: Crouch Walking
       takeName: Scene
       internalID: -3692877260685233286
-      firstFrame: 302
+      firstFrame: 303
       lastFrame: 338
       wrapMode: 0
       orientationOffsetY: 0
@@ -184,7 +184,7 @@ ModelImporter:
       name: Walking
       takeName: Scene
       internalID: -2941871404112819928
-      firstFrame: 374
+      firstFrame: 375
       lastFrame: 410
       wrapMode: 0
       orientationOffsetY: 0
@@ -212,7 +212,7 @@ ModelImporter:
     - serializedVersion: 16
       name: Sliding
       takeName: Scene
-      internalID: -4885119122951247324
+      internalID: -4426681539236229938
       firstFrame: 427
       lastFrame: 463
       wrapMode: 0
@@ -273,6 +273,7 @@ ModelImporter:
     secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 4
     useFileScale: 1
+    strictVertexDataChecks: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -567,18 +568,18 @@ ModelImporter:
         length: 0
         modified: 0
     skeleton:
-    - name: drama_queen_temp_name(Clone)
+    - name: drama_queen_with_mask(Clone)
       parentName: 
       position: {x: 0, y: 0, z: 0}
       rotation: {x: 0, y: 0, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: drama_queen
-      parentName: drama_queen_temp_name(Clone)
+      parentName: drama_queen_with_mask(Clone)
       position: {x: -0.96422386, y: 1.618883, z: 0.022016764}
       rotation: {x: 0.56556207, y: -0.41340417, z: 0.5126598, w: 0.49640357}
       scale: {x: 0.03776479, y: 0.037764784, z: 0.037764788}
     - name: metarig
-      parentName: drama_queen_temp_name(Clone)
+      parentName: drama_queen_with_mask(Clone)
       position: {x: -0, y: 0, z: 0}
       rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
       scale: {x: 100, y: 100, z: 100}
@@ -1005,6 +1006,7 @@ ModelImporter:
   humanoidOversampling: 1
   avatarSetup: 1
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0
   additionalBone: 0
   userData: 

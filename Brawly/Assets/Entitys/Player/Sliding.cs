@@ -8,27 +8,21 @@ public class Sliding
 
     public Rigidbody rb;
 
-    public Sliding(Transform orientation, Transform playerObj, Rigidbody rb,float horizontal,float vertical)
+    public Sliding(Transform orientation, Transform playerObj, Rigidbody rb)
     {
         this.orientation = orientation;
         this.playerObj = playerObj;
         this.rb = rb;
-
-        this.horizontal = horizontal;
-        this.vertical = vertical;
     }
 
     public float maxSlideTime = 0.75f;
-    public float slideForce = 200f;
+    public float slideForce = 50f;
     public float sliderTimer;
 
     public float slideYScale = 0.5f;
     public float startYScale;
     
     public bool sliding;
-
-    public float horizontal;
-    public float vertical;
 
     public bool firstDir = false;
 
@@ -50,12 +44,12 @@ public class Sliding
     public void slidingMovement()
     {
      
-        Vector3 inputDir = orientation.forward;
+        Vector3 inputDir = playerObj.forward;
 
         if (!ChainVars.onSlope || rb.velocity.y > -0.1f)
         {
 
-            Vector3 direction = getDirection(/*inputDir*/ playerObj.forward);
+            Vector3 direction = getDirection(inputDir);
 
             playerObj.forward = direction;
 

@@ -5,7 +5,7 @@ using UnityEngine;
 public class Entity : MonoBehaviour
 { 
    public float health;
-   public float speed = 5f;
+   public float speed;
 
    public Rigidbody rb;
    
@@ -25,6 +25,8 @@ public class Entity : MonoBehaviour
   public Transform orientation;
 
   public Transform playerObj;
+
+  private Player pl;
     
 
     //grounded checks
@@ -33,14 +35,11 @@ public class Entity : MonoBehaviour
     public float Height;
     public LayerMask whatIsGround;
     public bool grounded;
-
-    Vector3 faceDirection;
-
    
    public virtual void Start()
-    {
-     
-    }
+   {
+       pl = GetComponent<Player>();
+   }
 
     // Update is called once per frame
    public virtual void Update()
@@ -58,13 +57,15 @@ public class Entity : MonoBehaviour
 
    public void entityMovement()
    {
-        moveDirection = orientation.forward * vertical + orientation.right * horizontal;
+       moveDirection = orientation.forward * vertical + orientation.right * horizontal;
+       
 
-        if (onSlope() && !ChainVars.exitSlope)
+       if (onSlope() && !ChainVars.exitSlope)
        {
            Vector3 slopeDir = getSlopeMovementDir(moveDirection);
            
-           rb.AddForce(slopeDir * speed * 20f, ForceMode.Force);
+          // rb.AddForce(slopeDir * speed * 20f,ForceMode.Force);
+          rb.AddForce(slopeDir * speed * 5f,ForceMode.Force);
            ChainVars.UpdateDir(slopeDir);
 
            if (rb.velocity.y > 0)
@@ -74,31 +75,27 @@ public class Entity : MonoBehaviour
        }
        
        if(grounded)
-           rb.AddForce(moveDirection.normalized * speed * 10f, ForceMode.Force);
+            rb.AddForce(moveDirection.normalized * speed * 10f,ForceMode.Force);
        
        if(!grounded)
-           rb.AddForce(moveDirection.normalized * speed * 10f * airMultiplier, ForceMode.Force);
+           rb.AddForce(moveDirection.normalized * speed * 10f * airMultiplier,ForceMode.Force);
        
        speedControl();
 
        rb.useGravity = !onSlope();
 
-        faceMoveDirection();
-    }
+   }
 
-   public void checkGrounded(float distToGround)
+   public void checkGrounded()
    {
-       //The height MUST be tuned
-       
+        //The height MUST be tuned
+
         //grounded = Physics.Raycast(transform.position, Vector3.down, Height * 0.5f + 0.2f, whatIsGround);
 
-        grounded = !Physics.Raycast(transform.position, Vector3.down, distToGround + 0.1f, whatIsGround);
+        grounded = !Physics.Raycast(transform.position, Vector3.down, 7.2f, whatIsGround);
 
-        //grounded = Physics.Raycast(transform.position, Vector3.down, 0.6f, whatIsGround);
 
-        // grounded = Physics.Raycast(transform.position, Vector3.down, 0.6f, whatIsGround);
-
-        if (grounded)
+        if (pl.addDrag())
            rb.drag = groundDrag;
        else rb.drag = 0;
    }
@@ -124,7 +121,7 @@ public class Entity : MonoBehaviour
        }
    }
    
-   bool onSlope()
+  public bool onSlope()
    {
        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, Height * 0.5f + 0.3f))
        {
@@ -140,16 +137,5 @@ public class Entity : MonoBehaviour
    {
        return Vector3.ProjectOnPlane(direction, slopeHit.normal).normalized;
    }
-
-    public void faceMoveDirection()
-    {
-        faceDirection = new Vector3(horizontal, 0, vertical);
-
-        if (faceDirection != Vector3.zero)
-        {
-            Quaternion toRotation = Quaternion.LookRotation(faceDirection, Vector3.up);
-            playerObj.transform.rotation = Quaternion.RotateTowards(playerObj.transform.rotation, toRotation, 720f * Time.deltaTime);
-        }
-    }
 
 }
